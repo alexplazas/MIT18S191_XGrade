@@ -16,20 +16,20 @@ end
 # ╔═╡ 86e1ee96-f314-11ea-03f6-0f549b79e7c9
 begin
 	using Pkg
-	Pkg.activate(mktempdir())
+	Pkg.activate(pwd())
 end
 
 # ╔═╡ a4937996-f314-11ea-2ff9-615c888afaa8
 begin
 	Pkg.add([
-			"Images",
-			"ImageMagick",
-			"Compose",
-			"ImageFiltering",
+# 			"Images",
+# 			"ImageMagick",
+# 			"Compose",
+# 			"ImageFiltering",
 			"TestImages",
-			"Statistics",
-			"PlutoUI",
-			"BenchmarkTools"
+# 			"Statistics",
+# 			"PlutoUI",
+# 			"BenchmarkTools"
 			])
 
 	using Images
@@ -180,7 +180,8 @@ md"""
 
 # ╔═╡ e49235a4-f367-11ea-3913-f54a4a6b2d6b
 no_vcat_observation = md"""
-reduced alloc: $(1029-687)
+reduced alloc: $(1029-687) \
+reduces number of rows(of image) times `vcat`ing 2 vectors .
 """
 
 # ╔═╡ 837c43a4-f368-11ea-00a3-990a45cb0cbd
@@ -236,7 +237,8 @@ Nice! If you did your optimizations right, you should be able to get down the es
 
 # ╔═╡ fd819dac-f368-11ea-33bb-17148387546a
 views_observation = md"""
-reduced alloc: $(1029-3)
+reduced alloc: $(1029-3) \
+all of the allocations inside `for` loop were avoided by wraping the loop with `@views`
 """
 
 # ╔═╡ 318a2256-f369-11ea-23a9-2f74c566549b
@@ -334,9 +336,7 @@ function greedy_seam(energies, starting_pixel::Int)
 	seam[1] = j
 	
 	@views for i ∈ 2:rows
-		a = clamp(j-1, 1, cols)
-		b = j
-		c = clamp(j+1, 1, cols)
+		a, b, c = clamp(j-1, 1, cols), j, clamp(j+1, 1, cols)
 		j = min(energies[i, a] => a, energies[i, b] => b, energies[i, c] => c).second
 		seam[i] = j
 	end
@@ -422,20 +422,21 @@ function least_energy(energies, i, j)
 	
 	# induction
 	current_energy = energies[i, j]
-	a = clamp(j-1, 1, cols)
-	b = j
-	c = clamp(j+1, 1, cols)
+	a, b, c = clamp(j-1, 1, cols), j, clamp(j+1, 1, cols)
+	bs_energy = current_energy + least_energy(energies, i+1, b)[1]
+	
 	if a == b && b != c
-		_min_energy = min((current_energy + least_energy(energies, i+1, b)[1]) => b, 
+		_min_energy = min(bs_energy => b, 
 						(current_energy + least_energy(energies, i+1, c)[1]) => c)
 	elseif a != b && b == c
 		_min_energy = min((current_energy + least_energy(energies, i+1, a)[1]) => a, 
-						(current_energy + least_energy(energies, i+1, b)[1]) => b)
+						bs_energy => b)
 	else
 		_min_energy = min((current_energy + least_energy(energies, i+1, a)[1]) => a, 
-						(current_energy + least_energy(energies, i+1, b)[1]) => b, 
+						bs_energy => b, 
 						(current_energy + least_energy(energies, i+1, c)[1]) => c)
 	end
+	
 	return _min_energy.first, _min_energy.second
 end
 
@@ -500,8 +501,8 @@ md"""
 
 # ╔═╡ 6d993a5c-f373-11ea-0dde-c94e3bbd1552
 exhaustive_observation = md"""
-1. #todo
-2. an mxn image consists $2^m + (n-1)3^(m-1)$
+1. because it is recursive
+2. Exponentially: $O(m^n)$
 """
 
 # ╔═╡ ea417c2a-f373-11ea-3bb0-b1b5754f2fac
@@ -535,11 +536,36 @@ You are expected to read and understand the [documentation on dictionaries](http
 """
 
 # ╔═╡ b1d09bc8-f320-11ea-26bb-0101c9a204e2
-function memoized_least_energy(energies, i, j, memory)
-	m, n = size(energies)
+function memoized_least_energy(energies, i, j, memory)	
+	haskey(memory, (i, j)) && (return memory[(i, j)], j)
 	
-	# Replace the following line with your code.
-	[starting_pixel for i=1:m]
+	rows, cols = size(energies)
+	# base case
+	if i == rows
+		memory[(i, j)] = energies[i, j]
+		return energies[i, j], j
+	end
+	
+	# induction
+	current_energy = energies[i, j]
+	a, b, c = clamp(j-1, 1, cols), j, clamp(j+1, 1, cols)
+	bs_energy = current_energy + memoized_least_energy(energies, i+1, b, memory)[1]
+	
+	if a == b && b != c	
+		_min_energy = min(bs_energy => b, 
+						(current_energy + memoized_least_energy(energies, i+1, c, memory)[1]) => c)
+	elseif a != b && b == c
+		_min_energy = min((current_energy + memoized_least_energy(energies, i+1, a, memory)[1]) => a, 
+						bs_energy => b)
+	else
+		_min_energy = min((current_energy + memoized_least_energy(energies, i+1, a, memory)[1]) => a, 
+						bs_energy => b, 
+						(current_energy + memoized_least_energy(energies, i+1, c, memory)[1]) => c)
+	end
+	# update memory
+	memory[(i, j)] = _min_energy.first
+	
+	return _min_energy.first, _min_energy.second
 end
 
 # ╔═╡ 3e8b0868-f3bd-11ea-0c15-011bbd6ac051
@@ -549,7 +575,17 @@ function recursive_memoized_seam(energies, starting_pixel)
 	m, n = size(energies)
 	
 	# Replace the following line with your code.
-	[rand(1:starting_pixel) for i=1:m]
+	seam = zeros(Int, m)
+	j = starting_pixel
+	seam[1] = j
+	
+	@views for i ∈ 1:m-1
+# 		memory = Dict{Tuple{Int,Int}, Float64}()
+		_, j = memoized_least_energy(energies, i, j, memory)
+		seam[i+1] = j
+	end
+	
+	seam
 end
 
 # ╔═╡ 4e3bcf88-f3c5-11ea-3ada-2ff9213647b7
@@ -568,10 +604,35 @@ Write a variation of `matrix_memoized_least_energy` and `matrix_memoized_seam` w
 
 # ╔═╡ c8724b5e-f3bd-11ea-0034-b92af21ca12d
 function matrix_memoized_least_energy(energies, i, j, memory)
-	m, n = size(energies)
+	!iszero(memory[i, j]) && return memory[i, j], j
 	
-	# Replace the following line with your code.
-	[starting_pixel for i=1:m]
+	rows, cols = size(energies)
+	# base case
+	if i == rows
+		memory[i, j] = energies[i, j]
+		return energies[i, j], j
+	end
+	
+	# induction
+	current_energy = energies[i, j]
+	a, b, c = clamp(j-1, 1, cols), j, clamp(j+1, 1, cols)
+	bs_energy = current_energy + matrix_memoized_least_energy(energies, i+1, b, memory)[1]
+	
+	if a == b && b != c	
+		_min_energy = min(bs_energy => b, 
+						(current_energy + matrix_memoized_least_energy(energies, i+1, c, memory)[1]) => c)
+	elseif a != b && b == c
+		_min_energy = min((current_energy + matrix_memoized_least_energy(energies, i+1, a, memory)[1]) => a, 
+						bs_energy => b)
+	else
+		_min_energy = min((current_energy + matrix_memoized_least_energy(energies, i+1, a, memory)[1]) => a, 
+						bs_energy => b, 
+						(current_energy + matrix_memoized_least_energy(energies, i+1, c, memory)[1]) => c)
+	end
+	# update memory
+	memory[i, j] = _min_energy.first
+	
+	return _min_energy.first, _min_energy.second
 end
 
 # ╔═╡ be7d40e2-f320-11ea-1b56-dff2a0a16e8d
@@ -580,7 +641,16 @@ function matrix_memoized_seam(energies, starting_pixel)
 	m, n = size(energies)
 	
 	# Replace the following line with your code.
-	[starting_pixel for i=1:m]
+	seam = zeros(Int, m)
+	j = starting_pixel
+	seam[1] = j
+	
+	@views for i ∈ 1:m-1
+		_, j = matrix_memoized_least_energy(energies, i, j, memory)
+		seam[i+1] = j
+	end
+	
+	seam
 end
 
 # ╔═╡ 507f3870-f3c5-11ea-11f6-ada3bb087634
@@ -598,8 +668,21 @@ Now it's easy to see that the above algorithm is equivalent to one that populate
 """
 
 # ╔═╡ ff055726-f320-11ea-32f6-2bf38d7dd310
-function least_energy_matrix(energies)
-	copy(energies)
+function least_energy_matrix(energies::Array{T}) where T
+	rows, cols = size(energies)
+	least_energies = zeros(T, rows, cols)
+	least_energies[rows, :] = energies[rows, :]
+	
+	@views for i ∈ rows-1:-1:1, j ∈ 1:cols
+		cur_energy = energies[i, j]
+		a, b, c = clamp(j-1, 1, cols), j, clamp(j+1, 1, cols)
+
+		least_energies[i, j] = min(cur_energy + least_energies[i+1, a],
+								cur_energy + least_energies[i+1, b],
+								cur_energy + least_energies[i+1, c])
+	end
+	
+	least_energies
 end
 
 # ╔═╡ 92e19f22-f37b-11ea-25f7-e321337e375e
@@ -610,13 +693,7 @@ md"""
 """
 
 # ╔═╡ 795eb2c4-f37b-11ea-01e1-1dbac3c80c13
-function seam_from_precomputed_least_energy(energies, starting_pixel::Int)
-	least_energies = least_energy_matrix(energies)
-	m, n = size(least_energies)
-	
-	# Replace the following line with your code.
-	[starting_pixel for i=1:m]
-end
+seam_from_precomputed_least_energy(energies, starting_pixel::Int) = greedy_seam(least_energy_matrix(energies), starting_pixel)
 
 # ╔═╡ 51df0c98-f3c5-11ea-25b8-af41dc182bac
 md"Compute shrunk image: $(@bind shrink_bottomup CheckBox())"
@@ -744,6 +821,24 @@ end
 if shrink_recursive
 	recursive_carved[recursive_n]
 end
+
+# ╔═╡ df43e550-f5a1-11ea-0fef-8f9a365f09cf
+pika_energy = energy(pika);
+
+# ╔═╡ d713cbc0-f5a1-11ea-093d-41cbb078b3f4
+recursion_time = @benchmark least_energy(pika_energy, 1, 7)
+
+# ╔═╡ 1f687d32-f5a2-11ea-0c62-69950854c2eb
+memoized_recursion_time = @benchmark memoized_least_energy(pika_energy, 1, 7, Dict{Tuple{Int,Int}, Float64}())
+
+# ╔═╡ c011fb60-f5ae-11ea-09c1-85044524fcc3
+matrix_memoized_recursion_time = @benchmark matrix_memoized_least_energy(pika_energy, 1, 7, zeros(size(pika_energy)))
+
+# ╔═╡ 43771bb0-f5b0-11ea-095b-fdee07fc04f5
+least_energy_matrix_time = @benchmark (pika_energy |> least_energy_matrix)
+
+# ╔═╡ 9de3261e-f5b0-11ea-04dc-01432285a87c
+seam_from_precomputed_least_energy(pika_energy, 7);
 
 # ╔═╡ ffc17f40-f380-11ea-30ee-0fe8563c0eb1
 hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]))
@@ -955,12 +1050,16 @@ bigbreak
 # ╟─ea417c2a-f373-11ea-3bb0-b1b5754f2fac
 # ╟─56a7f954-f374-11ea-0391-f79b75195f4d
 # ╠═b1d09bc8-f320-11ea-26bb-0101c9a204e2
+# ╟─df43e550-f5a1-11ea-0fef-8f9a365f09cf
+# ╠═d713cbc0-f5a1-11ea-093d-41cbb078b3f4
+# ╠═1f687d32-f5a2-11ea-0c62-69950854c2eb
 # ╠═3e8b0868-f3bd-11ea-0c15-011bbd6ac051
 # ╠═4e3bcf88-f3c5-11ea-3ada-2ff9213647b7
 # ╠═4e3ef866-f3c5-11ea-3fb0-27d1ca9a9a3f
 # ╠═6e73b1da-f3c5-11ea-145f-6383effe8a89
 # ╟─cf39fa2a-f374-11ea-0680-55817de1b837
 # ╠═c8724b5e-f3bd-11ea-0034-b92af21ca12d
+# ╠═c011fb60-f5ae-11ea-09c1-85044524fcc3
 # ╠═be7d40e2-f320-11ea-1b56-dff2a0a16e8d
 # ╟─507f3870-f3c5-11ea-11f6-ada3bb087634
 # ╠═50829af6-f3c5-11ea-04a8-0535edd3b0aa
@@ -968,9 +1067,11 @@ bigbreak
 # ╟─4f48c8b8-f39d-11ea-25d2-1fab031a514f
 # ╟─24792456-f37b-11ea-07b2-4f4c8caea633
 # ╠═ff055726-f320-11ea-32f6-2bf38d7dd310
+# ╠═43771bb0-f5b0-11ea-095b-fdee07fc04f5
 # ╟─e0622780-f3b4-11ea-1f44-59fb9c5d2ebd
 # ╟─92e19f22-f37b-11ea-25f7-e321337e375e
 # ╠═795eb2c4-f37b-11ea-01e1-1dbac3c80c13
+# ╠═9de3261e-f5b0-11ea-04dc-01432285a87c
 # ╠═51df0c98-f3c5-11ea-25b8-af41dc182bac
 # ╠═51e28596-f3c5-11ea-2237-2b72bbfaa001
 # ╠═0a10acd8-f3c6-11ea-3e2f-7530a0af8c7f
