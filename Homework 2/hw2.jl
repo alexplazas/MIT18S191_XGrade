@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.11.12
+# v0.11.14
 
 using Markdown
 using InteractiveUtils
@@ -41,27 +41,32 @@ begin
 end
 
 # ╔═╡ e6b6760a-f37f-11ea-3ae1-65443ef5a81a
-md"_homework 2, version 1_"
+md"_homework 2, version 2.1_"
 
 # ╔═╡ 85cfbd10-f384-11ea-31dc-b5693630a4c5
 md"""
+
 # **Homework 2**: _Dynamic programming_
 `18.S191`, fall 2020
+
 This notebook contains _built-in, live answer checks_! In some exercises you will see a coloured box, which runs a test case on your code, and provides feedback based on the result. Simply edit the code, run it, and the check runs again.
+
 _For MIT students:_ there will also be some additional (secret) test cases that will be run as part of the grading process, and we will look at your notebook and write comments.
+
 Feel free to ask questions!
 """
 
 # ╔═╡ 33e43c7c-f381-11ea-3abc-c942327456b1
 # edit the code below to set your name and kerberos ID (i.e. email without @mit.edu)
 
-student = (name = "Jazzy Doe", kerberos_id = "jazz")
+student = (name = "Abhinav Lakhani", kerberos_id = "akshu3398")
 
 # you might need to wait until all other cells in this notebook have completed running. 
 # scroll around the page to see what's up
 
 # ╔═╡ ec66314e-f37f-11ea-0af4-31da0584e881
 md"""
+
 Submission by: **_$(student.name)_** ($(student.kerberos_id)@mit.edu)
 """
 
@@ -76,7 +81,9 @@ img = load(download("https://i.imgur.com/4SRnmkj.png"))
 # ╔═╡ cc9fcdae-f314-11ea-1b9a-1f68b792f005
 md"""
 # Arrays: Slices and views
+
 In the lecture (included below) we learned about what array views are. In this exercise we will add to that understanding and look at an important use of `view`s: to reduce the amount of memory allocations when reading sub-sequences within an array.
+
 We will use the `BenchmarkTools` package to emperically understand the effects of using views.
 """
 
@@ -88,7 +95,9 @@ html"""
 # ╔═╡ b49e8cc8-f381-11ea-1056-91668ac6ae4e
 md"""
 ## Shrinking an array
+
 Below is a function called `remove_in_each_row(img, pixels)`. It takes a matrix `img` and a vector of integers, `pixels`, and shrinks the image by 1 pixel in width by removing the element `img[i, pixels[i]]` in every row. This function is one of the building blocks of the Image Seam algorithm we saw in the lecture.
+
 Read it and convince yourself that it is correct.
 """
 
@@ -116,7 +125,9 @@ md"Let's use it to remove the pixels on the diagonal. These are the image dimens
 # ╔═╡ 1d893998-f366-11ea-0828-512de0c44915
 md"""
 ## **Exercise 1** - _Making it efficient_
+
 We can use the `@benchmark` macro from the [BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl) package to benchmark fragments of Julia code. 
+
 `@benchmark` takes an expression and runs it a number of times to obtain statistics about the run time and memory allocation. We generally take the minimum time as the most stable measurement of performance ([for reasons discussed in the paper on BenchmarkTools](http://www-math.mit.edu/~edelman/publications/robust_benchmarking.pdf))
 """
 
@@ -131,8 +142,11 @@ performance_experiment_default = @benchmark remove_in_each_row(img, 1:size(img, 
 # ╔═╡ f7915918-f366-11ea-2c46-2f4671ae8a22
 md"""
 #### Exercise 1.1
+
 `vcat(x, y)` is used in julia to concatenate two arrays vertically. This actually creates a new array of size `length(x) + length(y)` and copies `x` and `y` into it.  We use it in `remove_in_each_row` to create rows which have one pixel less.
+
 While using `vcat` might make it easy to write the first version of our function, it's strictly not necessary.
+
 👉 In `remove_in_each_row_no_vcat` below, figure out a way to avoid the use of `vcat` and modify the function to avoid it.
 """
 
@@ -143,9 +157,8 @@ function remove_in_each_row_no_vcat(img, column_numbers)
 	local img′ = similar(img, m, n-1) # create a similar image with one less column
 
 	for (i, j) in enumerate(column_numbers)
-		# EDIT THE FOLLOWING LINE and split it into two lines
-		# to avoid using `vcat`.
-		img′[i, :] .= vcat(img[i, 1:j-1], img[i, j+1:end])
+		img′[i, 1:j-1] = img[i, 1:j-1]
+		img′[i, j:end] = img[i, j+1:end]
 	end
 	img′
 end
@@ -161,18 +174,22 @@ If you did it correctly, you should see that this benchmark shows the function r
 # ╔═╡ ba1619d4-f389-11ea-2b3f-fd9ba71cf7e3
 md"""
 #### Exercise 1.2
+
 👉 How many estimated allocations did this optimization reduce, and how can you explain most of them?
 """
 
 # ╔═╡ e49235a4-f367-11ea-3913-f54a4a6b2d6b
 no_vcat_observation = md"""
-<Your answer here>
+reduced alloc: $(1029-687)
 """
 
 # ╔═╡ 837c43a4-f368-11ea-00a3-990a45cb0cbd
 md"""
+
 #### Exercise 1.3 - `view`-based optimization
+
 👉 In the below `remove_in_each_row_views` function, implement the same optimization to remove `vcat` and use `@view` or `@views` to avoid creating copies or slices of the `img` array.
+
 Pluto will automatically time your change with `@benchmark` below.
 """
 
@@ -182,10 +199,9 @@ function remove_in_each_row_views(img, column_numbers)
 	m, n = size(img)
 	local img′ = similar(img, m, n-1) # create a similar image with one less column
 
-	for (i, j) in enumerate(column_numbers)
-		# EDIT THE FOLLOWING LINE and split it into two lines
-		# to avoid using `vcat`.
-		img′[i, :] .= vcat(img[i, 1:j-1], img[i, j+1:end])
+	@views for (i, j) in enumerate(column_numbers)
+		img′[i, 1:j-1] = img[i, 1:j-1]
+		img′[i, j:end] = img[i, j+1:end]
 	end
 	img′
 end
@@ -210,14 +226,17 @@ md"Final tally:"
 
 # ╔═╡ 7eaa57d2-f368-11ea-1a70-c7c7e54bd0b1
 md"""
+
 #### Exercise 1.4
+
 Nice! If you did your optimizations right, you should be able to get down the estimated allocations to a single digit number!
+
 👉 How many allocations were avoided by adding the `@view` optimization over the `vcat` optimization? Why is this?
 """
 
 # ╔═╡ fd819dac-f368-11ea-33bb-17148387546a
 views_observation = md"""
-<your answer here>
+reduced alloc: $(1029-3)
 """
 
 # ╔═╡ 318a2256-f369-11ea-23a9-2f74c566549b
@@ -228,6 +247,7 @@ md"""
 # ╔═╡ 7a44ba52-f318-11ea-0406-4731c80c1007
 md"""
 First, we will define a `brightness` function for a pixel (a color) as the mean of the red, green and blue values.
+
 You should use this function whenever the problem set asks you to deal with _brightness_ of a pixel.
 """
 
@@ -273,17 +293,24 @@ float_to_color.(energy(img))
 # ╔═╡ 87afabf8-f317-11ea-3cb3-29dced8e265a
 md"""
 ## **Exercise 2** - _Building up to dynamic programming_
+
 In this exercise and the following ones, we will use the computational problem of Seam carving. We will think through all the "gut reaction" solutions, and then finally end up with the dynamic programming solution that we saw in the lecture.
+
 In the process we will understand the performance and accuracy of each iteration of our solution.
+
 ### How to implement the solutions:
+
 For every variation of the algorithm, your job is to write a function which takes a matrix of energies, and an index for a pixel on the first row, and computes a "seam" starting at that pixel.
+
 The function should return a vector of as many integers as there are rows in the input matrix where each number points out a pixel to delete from the corresponding row. (it acts as the input to `remove_in_each_row`).
 """
 
 # ╔═╡ 8ba9f5fc-f31b-11ea-00fe-79ecece09c25
 md"""
 #### Exercise 2.1 - _The greedy approach_
+
 The first approach discussed in the lecture (included below) is the _greedy approach_: you start from your top pixel, and at each step you just look at the three neighbors below. The next pixel in the seam is the neighbor with the lowest energy.
+
 """
 
 # ╔═╡ f5a74dfc-f388-11ea-2577-b543d31576c6
@@ -301,8 +328,20 @@ random_seam(m, n, i) = reduce((a, b) -> [a..., clamp(last(a) + rand(-1:1), 1, n)
 
 # ╔═╡ abf20aa0-f31b-11ea-2548-9bea4fab4c37
 function greedy_seam(energies, starting_pixel::Int)
-	# you can delete the body of this function - it's just a placeholder.
-	random_seam(size(energies)..., starting_pixel)
+	rows, cols = size(energies)
+	seam = zeros(Int, rows)
+	j = starting_pixel
+	seam[1] = j
+	
+	@views for i ∈ 2:rows
+		a = clamp(j-1, 1, cols)
+		b = j
+		c = clamp(j+1, 1, cols)
+		j = min(energies[i, a] => a, energies[i, b] => b, energies[i, c] => c).second
+		seam[i] = j
+	end
+	
+	seam
 end
 
 # ╔═╡ 5430d772-f397-11ea-2ed8-03ee06d02a22
@@ -330,8 +369,11 @@ md"Compute shrunk image: $(@bind shrink_greedy CheckBox())"
 # ╔═╡ 52452d26-f36c-11ea-01a6-313114b4445d
 md"""
 #### Exercise 2.2 - _Recursion_
+
 A common pattern in algorithm design is the idea of solving a problem as the combination of solutions to subproblems.
+
 The classic example, is a [Fibonacci number](https://en.wikipedia.org/wiki/Fibonacci_number) generator.
+
 The recursive implementation of Fibonacci looks something like this
 """
 
@@ -349,10 +391,14 @@ end
 # ╔═╡ 32e9a944-f3b6-11ea-0e82-1dff6c2eef8d
 md"""
 Notice that you can call a function from within itself which may call itself and so on until a base case is reached. Then the program will combine the result from the base case up to the final result.
+
 In the case of the Fibonacci function, we added the solutions to the subproblems `fib(n-1)`, `fib(n-2)` to produce `fib(n)`.
+
 An analogy can be drawn to the process of mathematical induction in mathematics. And as with mathematical induction there are parts to constructing such a recursive algorithm:
+
 - Defining a base case
 - Defining an recursion i.e. finding a solution to the problem as a combination of solutions to smaller problems.
+
 """
 
 # ╔═╡ 9101d5a0-f371-11ea-1c04-f3f43b96ca4a
@@ -360,20 +406,37 @@ md"""
 👉 Define a `least_energy` function which returns:
 1. the lowest possible total energy for a seam starting at the pixel at $(i, j)$;
 2. the column to jump to on the next move (in row $i + 1$),
-which is one of $j-1$, $j$ or $j+1$, up toboundary conditions.
+which is one of $j-1$, $j$ or $j+1$, up to boundary conditions.
+
 Return these two values in a tuple.
 """
 
 # ╔═╡ 8ec27ef8-f320-11ea-2573-c97b7b908cb7
 ## returns lowest possible sum energy at pixel (i, j), and the column to jump to in row i+1.
 function least_energy(energies, i, j)
+	rows, cols = size(energies)
 	# base case
-	# if i == something
-	#    return energies[...] # no need for recursive computation in the base case!
-	# end
-	#
+	if i == rows
+		return energies[i, j], j
+	end
+	
 	# induction
-	# combine results from recursive calls to `least_energy`.
+	current_energy = energies[i, j]
+	a = clamp(j-1, 1, cols)
+	b = j
+	c = clamp(j+1, 1, cols)
+	if a == b && b != c
+		_min_energy = min((current_energy + least_energy(energies, i+1, b)[1]) => b, 
+						(current_energy + least_energy(energies, i+1, c)[1]) => c)
+	elseif a != b && b == c
+		_min_energy = min((current_energy + least_energy(energies, i+1, a)[1]) => a, 
+						(current_energy + least_energy(energies, i+1, b)[1]) => b)
+	else
+		_min_energy = min((current_energy + least_energy(energies, i+1, a)[1]) => a, 
+						(current_energy + least_energy(energies, i+1, b)[1]) => b, 
+						(current_energy + least_energy(energies, i+1, c)[1]) => c)
+	end
+	return _min_energy.first, _min_energy.second
 end
 
 # ╔═╡ a7f3d9f8-f3bb-11ea-0c1a-55bbb8408f09
@@ -402,7 +465,9 @@ end
 # ╔═╡ 8bc930f0-f372-11ea-06cb-79ced2834720
 md"""
 #### Exercise 2.3 - _Exhaustive search with recursion_
+
 Now use the `least_energy` function you defined above to define the `recursive_seam` function which takes the energies matrix and a starting pixel, and computes the seam with the lowest energy from that starting pixel.
+
 This will give you the method used in the lecture to perform [exhaustive search of all possible paths](https://youtu.be/rpB6zQNsbQU?t=839).
 """
 
@@ -410,7 +475,16 @@ This will give you the method used in the lecture to perform [exhaustive search 
 function recursive_seam(energies, starting_pixel)
 	m, n = size(energies)
 	# Replace the following line with your code.
-	[rand(1:starting_pixel) for i=1:m]
+	seam = zeros(Int, m)
+	j = starting_pixel
+	seam[1] = j
+	
+	@views for i ∈ 1:m-1
+		_, j = least_energy(energies, i, j)
+		seam[i+1] = j
+	end
+	
+	seam
 end
 
 # ╔═╡ 1d55333c-f393-11ea-229a-5b1e9cabea6a
@@ -419,31 +493,42 @@ md"Compute shrunk image: $(@bind shrink_recursive CheckBox())"
 # ╔═╡ c572f6ce-f372-11ea-3c9a-e3a21384edca
 md"""
 #### Exercise 2.4
+
 - State clearly why this algorithm does an exhaustive search of all possible paths.
-- How many valid seams are there in an image of size `m×n`?
+- How does the number of possible seam grow as n increases for a `m×n` image? (Big O notation is fine, or an approximation is fine).
 """
 
 # ╔═╡ 6d993a5c-f373-11ea-0dde-c94e3bbd1552
 exhaustive_observation = md"""
-<your answer here>
+1. #todo
+2. an mxn image consists $2^m + (n-1)3^(m-1)$
 """
 
 # ╔═╡ ea417c2a-f373-11ea-3bb0-b1b5754f2fac
 md"""
 ## **Exercise 3** - _Memoization_
+
 **Memoization** is the name given to the technique of storing results to expensive function calls that will be accessed more than once.
+
 As stated in the video, the function `least_energy` is called repeatedly with the same arguments. In fact, we call it on the order of $3^n$ times, when there are only really $m \times n$ unique ways to call it!
+
 Lets implement memoization on this function with first a [dictionary](https://docs.julialang.org/en/v1/base/collections/#Dictionaries) for storage.
 """
 
 # ╔═╡ 56a7f954-f374-11ea-0391-f79b75195f4d
 md"""
 #### Exercise 3.1 - _Dictionary as storage_
+
 Let's make a memoized version of least_energy function which takes a dictionary and
 first checks to see if the dictionary contains the key (i,j) if it does, returns the value stored in that place, if not, will compute it, and store it in the dictionary at key (i, j) and return the value it computed.
+
+
 `memoized_least_energy(energies, starting_pixel, memory)`
+
 This function must recursively call itself, and pass the same `memory` object it received as an argument.
+
 You are expected to read and understand the [documentation on dictionaries](https://docs.julialang.org/en/v1/base/collections/#Dictionaries) to find out how to:
+
 1. Create a dictionary
 2. Check if a key is stored in the dictionary
 3. Access contents of the dictionary by a key.
@@ -473,8 +558,11 @@ md"Compute shrunk image: $(@bind shrink_dict CheckBox())"
 # ╔═╡ cf39fa2a-f374-11ea-0680-55817de1b837
 md"""
 ### Exercise 3.2 - _Matrix as storage_
+
 The dictionary-based memoization we tried above works well in general as there is no restriction on what type of keys can be used.
+
 But in our particular case, we can use a matrix as a storage, since a matrix is naturally keyed by two integers.
+
 Write a variation of `matrix_memoized_least_energy` and `matrix_memoized_seam` which use a matrix as storage.
 """
 
@@ -501,8 +589,11 @@ md"Compute shrunk image: $(@bind shrink_matrix CheckBox())"
 # ╔═╡ 24792456-f37b-11ea-07b2-4f4c8caea633
 md"""
 ## **Exercise 4** - _Dynamic programming without recursion_ 
+
 Now it's easy to see that the above algorithm is equivalent to one that populates the memory matrix in a for loop.
+
 #### Exercise 4.1
+
 👉 Write a function which takes the energies and returns the least energy matrix which has the least possible seam energy for each pixel. This was shown in the lecture, but attempt to write it on your own.
 """
 
@@ -514,6 +605,7 @@ end
 # ╔═╡ 92e19f22-f37b-11ea-25f7-e321337e375e
 md"""
 #### Exercise 4.2
+
 👉 Write a function which, when given the matrix returned by `least_energy_matrix` and a starting pixel (on the first row), computes the least energy seam from that pixel.
 """
 
@@ -539,6 +631,7 @@ end
 
 # ╔═╡ 6b4d6584-f3be-11ea-131d-e5bdefcc791b
 md"## Function library
+
 Just some helper functions used in the notebook."
 
 # ╔═╡ ef88c388-f388-11ea-3828-ff4db4d1874e
@@ -581,17 +674,6 @@ end
 # ╔═╡ f626b222-f388-11ea-0d94-1736759b5f52
 if shrink_greedy
 	greedy_carved[greedy_n]
-end
-
-# ╔═╡ d88bc272-f392-11ea-0efd-15e0e2b2cd4e
-if shrink_recursive
-	recursive_carved = shrink_n(img, 200, recursive_seam)
-	md"Shrink by: $(@bind recursive_n Slider(1:200, show_value=true))"
-end
-
-# ╔═╡ e66ef06a-f392-11ea-30ab-7160e7723a17
-if shrink_recursive
-	recursive_carved[recursive_n]
 end
 
 # ╔═╡ 4e3ef866-f3c5-11ea-3fb0-27d1ca9a9a3f
@@ -640,7 +722,7 @@ end
 
 # ╔═╡ ddba07dc-f3b7-11ea-353e-0f67713727fc
 # Do not make this image bigger, it will be infeasible to compute.
-pika = decimate(load(download("https://art.pixilart.com/901d53bcda6b27b.png")),77)
+pika = decimate(load(download("https://art.pixilart.com/901d53bcda6b27b.png")),150)
 
 # ╔═╡ 73b52fd6-f3b9-11ea-14ed-ebfcab1ce6aa
 size(pika)
@@ -650,6 +732,17 @@ if compute_access
 	tracked = track_access(energy(pika))
 	least_energy(tracked, 1,7)
 	tracked.accesses[]
+end
+
+# ╔═╡ d88bc272-f392-11ea-0efd-15e0e2b2cd4e
+if shrink_recursive
+	recursive_carved = shrink_n(pika, 3, recursive_seam)
+	md"Shrink by: $(@bind recursive_n Slider(1:3, show_value=true))"
+end
+
+# ╔═╡ e66ef06a-f392-11ea-30ab-7160e7723a17
+if shrink_recursive
+	recursive_carved[recursive_n]
 end
 
 # ╔═╡ ffc17f40-f380-11ea-30ee-0fe8563c0eb1
@@ -778,7 +871,7 @@ bigbreak
 # ╟─e6b6760a-f37f-11ea-3ae1-65443ef5a81a
 # ╟─ec66314e-f37f-11ea-0af4-31da0584e881
 # ╟─85cfbd10-f384-11ea-31dc-b5693630a4c5
-# ╠═33e43c7c-f381-11ea-3abc-c942327456b1
+# ╟─33e43c7c-f381-11ea-3abc-c942327456b1
 # ╟─938185ec-f384-11ea-21dc-b56b7469f798
 # ╠═86e1ee96-f314-11ea-03f6-0f549b79e7c9
 # ╠═a4937996-f314-11ea-2ff9-615c888afaa8
@@ -849,7 +942,7 @@ bigbreak
 # ╠═8ec27ef8-f320-11ea-2573-c97b7b908cb7
 # ╟─9f18efe2-f38e-11ea-0871-6d7760d0b2f6
 # ╟─a7f3d9f8-f3bb-11ea-0c1a-55bbb8408f09
-# ╟─fa8e2772-f3b6-11ea-30f7-699717693164
+# ╠═fa8e2772-f3b6-11ea-30f7-699717693164
 # ╟─18e0fd8a-f3bc-11ea-0713-fbf74d5fa41a
 # ╟─cbf29020-f3ba-11ea-2cb0-b92836f3d04b
 # ╟─8bc930f0-f372-11ea-06cb-79ced2834720
@@ -859,7 +952,7 @@ bigbreak
 # ╠═e66ef06a-f392-11ea-30ab-7160e7723a17
 # ╟─c572f6ce-f372-11ea-3c9a-e3a21384edca
 # ╠═6d993a5c-f373-11ea-0dde-c94e3bbd1552
-# ╠═ea417c2a-f373-11ea-3bb0-b1b5754f2fac
+# ╟─ea417c2a-f373-11ea-3bb0-b1b5754f2fac
 # ╟─56a7f954-f374-11ea-0391-f79b75195f4d
 # ╠═b1d09bc8-f320-11ea-26bb-0101c9a204e2
 # ╠═3e8b0868-f3bd-11ea-0c15-011bbd6ac051
