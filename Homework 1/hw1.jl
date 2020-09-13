@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.11.13
+# v0.11.14
 
 using Markdown
 using InteractiveUtils
@@ -18,17 +18,21 @@ md"_homework 1, version 4_"
 
 # ╔═╡ ac8ff080-ed61-11ea-3650-d9df06123e1f
 md"""
+
 # **Homework 1** - _convolutions_
 `18.S191`, fall 2020
+
 This notebook contains _built-in, live answer checks_! In some exercises you will see a coloured box, which runs a test case on your code, and provides feedback based on the result. Simply edit the code, run it, and the check runs again.
+
 _For MIT students:_ there will also be some additional (secret) test cases that will be run as part of the grading process, and we will look at your notebook and write comments.
+
 Feel free to ask questions!
 """
 
 # ╔═╡ 911ccbce-ed68-11ea-3606-0384e7580d7c
 # edit the code below to set your name and kerberos ID (i.e. email without @mit.edu)
 
-student = (name = "Jazzy Doe", kerberos_id = "jazz")
+student = (name = "Abhinav Lakhani", kerberos_id = "akshu3398")
 
 # press the ▶ button in the bottom right of this cell to run your edits
 # or use Shift+Enter
@@ -38,6 +42,7 @@ student = (name = "Jazzy Doe", kerberos_id = "jazz")
 
 # ╔═╡ 8ef13896-ed68-11ea-160b-3550eeabbd7d
 md"""
+
 Submission by: **_$(student.name)_** ($(student.kerberos_id)@mit.edu)
 """
 
@@ -52,7 +57,7 @@ end
 
 # ╔═╡ 74b008f6-ed6b-11ea-291f-b3791d6d1b35
 begin
-	Pkg.add(["Images", "ImageIO", "ImageMagick"])
+	Pkg.add(["Images", "ImageMagick"])
 	using Images
 end
 
@@ -68,7 +73,9 @@ md"_We set up Images.jl again:_"
 # ╔═╡ 540ccfcc-ee0a-11ea-15dc-4f8120063397
 md"""
 ## **Exercise 1** - _Manipulating vectors (1D images)_
+
 A `Vector` is a 1D array. We can think of that as a 1D image.
+
 """
 
 # ╔═╡ 467856dc-eded-11ea-0f83-13d939021ef3
@@ -80,16 +87,13 @@ md"#### Exerise 1.1
 "
 
 # ╔═╡ f51333a6-eded-11ea-34e6-bfbb3a69bcb0
-random_vect = missing # replace this with your code!
+random_vect = rand(10)
 
 # ╔═╡ cf738088-eded-11ea-2915-61735c2aa990
 md"👉 Make a function `mean` using a `for` loop, which computes the mean/average of a vector of numbers."
 
 # ╔═╡ 0ffa8354-edee-11ea-2883-9d5bfea4a236
-function mean(x)
-	
-	return missing
-end
+mean(x) = sum(x) / length(x)
 
 # ╔═╡ 1f104ce4-ee0e-11ea-2029-1d9c817175af
 mean([1, 2, 3])
@@ -98,19 +102,17 @@ mean([1, 2, 3])
 md"👉 Define `m` to be the mean of `random_vect`."
 
 # ╔═╡ 2a391708-edee-11ea-124e-d14698171b68
-m = missing
+m = random_vect |> mean
 
 # ╔═╡ e2863d4c-edef-11ea-1d67-332ddca03cc4
 md"""👉 Write a function `demean`, which takes a vector `x` and subtracts the mean from each value in `x`."""
 
 # ╔═╡ ec5efe8c-edef-11ea-2c6f-afaaeb5bc50c
-function demean(x)
-	
-	return missing
-end
+demean(x) = x .- mean(x)
 
 # ╔═╡ 29e10640-edf0-11ea-0398-17dbf4242de3
 md"Let's check that the mean of the `demean(random_vect)` is 0:
+
 _Due to floating-point round-off error it may *not* be *exactly* 0._"
 
 # ╔═╡ 6f67657e-ee1a-11ea-0c2f-3d567bcfa6ea
@@ -130,40 +132,35 @@ mean(demean(copy_of_random_vect))
 # ╔═╡ a5f8bafe-edf0-11ea-0da3-3330861ae43a
 md"""
 #### Exercise 1.2
+
 👉 Generate a vector of 100 zeros. Change the center 20 elements to 1.
 """
 
 # ╔═╡ b6b65b94-edf0-11ea-3686-fbff0ff53d08
-function create_bar()
-	
-	return missing
-end
+create_bar() = (x = zeros(100); x[45:55] .= 1.0; x)
 
 # ╔═╡ 22f28dae-edf2-11ea-25b5-11c369ae1253
 md"""
 #### Exercise 1.3
+
 👉 Write a function that turns a `Vector` of `Vector`s into a `Matrix`.
 """
 
 # ╔═╡ 8c19fb72-ed6c-11ea-2728-3fa9219eddc4
-function vecvec_to_matrix(vecvec)
-	
-	return missing
-end
+vecvec_to_matrix(vecvec) = hcat(vecvec...)
 
 # ╔═╡ c4761a7e-edf2-11ea-1e75-118e73dadbed
 vecvec_to_matrix([[1,2], [3,4]])
 
 # ╔═╡ 393667ca-edf2-11ea-09c5-c5d292d5e896
 md"""
+
+
 👉 Write a function that turns a `Matrix` into a`Vector` of `Vector`s .
 """
 
 # ╔═╡ 9f1c6d04-ed6c-11ea-007b-75e7e780703d
-function matrix_to_vecvec(matrix)
-	
-	return missing
-end
+matrix_to_vecvec(mat) = mat |> eachcol |> collect
 
 # ╔═╡ 70955aca-ed6e-11ea-2330-89b4d20b1795
 matrix_to_vecvec([6 7; 8 9])
@@ -186,8 +183,10 @@ colored_line(create_bar())
 # ╔═╡ e083b3e8-ed61-11ea-2ec9-217820b0a1b4
 md"""
 ## **Exercise 2** - _Manipulating images_
+
 In this exercise we will get familiar with matrices (2D arrays) in Julia, by manipulating images.
 Recall that in Julia images are matrices of `RGB` color objects.
+
 Let's load a picture of Philip again.
 """
 
@@ -203,10 +202,20 @@ md"""
 👉 Write a function **`mean_colors`** that accepts an object called `image`. It should calculate the mean (average) amounts of red, green and blue in the image and return a tuple `(r, g, b)` of those means.
 """
 
+# ╔═╡ 7997f902-f590-11ea-26c7-55b4f48df187
+begin
+	get_red(im) = im.r
+	get_green(im) = im.g
+	get_blue(im) = im.b
+end
+
 # ╔═╡ f6898df6-ee07-11ea-2838-fde9bc739c11
 function mean_colors(image)
+	image_in_red = get_red.(image)
+	image_in_green = get_green.(image)
+	image_in_blue = get_blue.(image)
 	
-	return missing
+	(mean(image_in_red), mean(image_in_green), mean(image_in_blue))
 end
 
 # ╔═╡ d75ec078-ee0d-11ea-3723-71fb8eecb040
@@ -220,20 +229,11 @@ md"""
 
 # ╔═╡ f6991a50-ee07-11ea-0bc4-1d68eb028e6a
 begin
-	function quantize(x::Number)
-		
-		return missing
-	end
+	quantize(x::Number) = floor(x, digits=1)
 	
-	function quantize(color::AbstractRGB)
-		# you will write me in a later exercise!
-		return missing
-	end
+	quantize(color::T) where T = T(quantize(color.r), quantize(color.g), quantize(color.b))
 	
-	function quantize(image::AbstractMatrix)
-		# you will write me in a later exercise!
-		return missing
-	end
+	quantize(image::AbstractMatrix) = quantize.(image)
 end
 
 # ╔═╡ f6a655f8-ee07-11ea-13b6-43ca404ddfc7
@@ -243,9 +243,11 @@ quantize(0.267), quantize(0.91)
 md"""
 #### Exercise 2.3
 👉 Write the second **method** of the function `quantize`, i.e. a new *version* of the function with the *same* name. This method will accept a color object called `color`, of the type `AbstractRGB`. 
+
 _Write the function in the same cell as `quantize(x::Number)` from the last exercise. 👆_
     
 Here, `::AbstractRGB` is a **type annotation**. This ensures that this version of the function will be chosen when passing in an object whose type is a **subtype** of the `AbstractRGB` abstract type. For example, both the `RGB` and `RGBX` types satisfy this.
+
 The method you write should return a new `RGB` object, in which each component ($r$, $g$ and $b$) are quantized.
 """
 
@@ -253,6 +255,7 @@ The method you write should return a new `RGB` object, in which each component (
 md"""
 #### Exercise 2.4
 👉 Write a method `quantize(image::AbstractMatrix)` that quantizes an image by quantizing each pixel in the image. (You may assume that the matrix is a matrix of color objects.)
+
 _Write the function in the same cell as `quantize(x::Number)` from the last exercise. 👆_
 """
 
@@ -266,10 +269,7 @@ md"""
 """
 
 # ╔═╡ 63e8d636-ee0b-11ea-173d-bd3327347d55
-function invert(color::AbstractRGB)
-	
-	return missing
-end
+invert(color::T) where T = T(1-color.r, 1-color.g, 1-color.b)
 
 # ╔═╡ 2cc2f84e-ee0d-11ea-373b-e7ad3204bb00
 md"Let's invert some colors:"
@@ -300,25 +300,17 @@ md"""
 
 # ╔═╡ f6e2cb2a-ee07-11ea-06ee-1b77e34c1e91
 begin
-	function noisify(x::Number, s)
-
-		return missing
-	end
+	noisify(x::Number, s) = clamp(x + s*randn(), 0, 1)
 	
-	function noisify(color::AbstractRGB, s)
-		# you will write me in a later exercise!
-		return missing
-	end
+	noisify(color::T, s) where T = T(noisify(color.r, s), noisify(color.g, s), noisify(color.b, s))
 	
-	function noisify(image::AbstractMatrix, s)
-		# you will write me in a later exercise!
-		return missing
-	end
+	noisify(image::AbstractMatrix, s) = noisify.(image, s)
 end
 
 # ╔═╡ f6fc1312-ee07-11ea-39a0-299b67aee3d8
 md"""
 👉  Write the second method `noisify(c::AbstractRGB, s)` to add random noise of intensity $s$ to each of the $(r, g, b)$ values in a colour. 
+
 _Write the function in the same cell as `noisify(x::Number)` from the last exercise. 👆_
 """
 
@@ -334,6 +326,7 @@ noisify(red, color_noise)
 # ╔═╡ f70823d2-ee07-11ea-2bb3-01425212aaf9
 md"""
 👉 Write the third method `noisify(image::AbstractMatrix, s)` to noisify each pixel of an image.
+
 _Write the function in the same cell as `noisify(x::Number)` from the last exercise. 👆_
 """
 
@@ -346,7 +339,9 @@ _Write the function in the same cell as `noisify(x::Number)` from the last exerc
 # ╔═╡ f714699e-ee07-11ea-08b6-5f5169861b57
 md"""
 👉 For which noise intensity does it become unrecognisable? 
+
 You may need noise intensities larger than 1. Why?
+
 """
 
 # ╔═╡ bdc2df7c-ee0c-11ea-2e9f-7d2c085617c1
@@ -377,19 +372,27 @@ noisify(philip, philip_noise)
 
 # ╔═╡ e08781fa-ed61-11ea-13ae-91a49b5eb74a
 md"""
+
 ## **Exercise 3** - _Convolutions_
+
 As we have seen in the videos, we can produce cool effects using the mathematical technique of **convolutions**. We input one image $M$ and get a new image $M'$ back. 
+
 Conceptually we think of $M$ as a matrix. In practice, in Julia it will be a `Matrix` of color objects, and we may need to take that into account. Ideally, however, we should write a **generic** function that will work for any type of data contained in the matrix.
+
 A convolution works on a small **window** of an image, i.e. a region centered around a given point $(i, j)$. We will suppose that the window is a square region with odd side length $2\ell + 1$, running from $-\ell, \ldots, 0, \ldots, \ell$.
+
 The result of the convolution over a given window, centred at the point $(i, j)$ is a *single number*; this number is the value that we will use for $M'_{i, j}$.
 (Note that neighbouring windows overlap.)
+
 To get started let's restrict ourselves to convolutions in 1D.
 So a window is just a 1D region from $-\ell$ to $\ell$.
+
 """
 
 # ╔═╡ 7fc8ee1c-ee09-11ea-1382-ad21d5373308
 md"""
 ---
+
 Let's create a vector `v` of random numbers of length `n=100`.
 """
 
@@ -406,6 +409,7 @@ md"_Feel free to experiment with different values!_"
 md"""
 #### Exercise 3.1
 You've seen some colored lines in this notebook to visualize arrays. Can you make another one?
+
 👉 Try plotting our vector `v` using `colored_line(v)`.
 """
 
@@ -421,14 +425,12 @@ md"""
 We need to decide how to handle the **boundary conditions**, i.e. what happens if we try to access a position in the vector `v` beyond `1:n`.  The simplest solution is to assume that $v_{i}$ is 0 outside the original vector; however, this may lead to strange boundary effects.
     
 A better solution is to use the *closest* value that is inside the vector. Effectively we are extending the vector and copying the extreme values into the extended positions. (Indeed, this is one way we could implement this; these extra positions are called **ghost cells**.)
+
 👉 Write a function `extend(v, i)` that checks whether the position $i$ is inside `1:n`. If so, return the $i$th component of `v`; otherwise, return the nearest end value.
 """
 
 # ╔═╡ 802bec56-ee09-11ea-043e-51cf1db02a34
-function extend(v, i)
-	
-	return missing
-end
+extend(v, i, L=length(v)) = v[clamp(i, 1, L)]
 
 # ╔═╡ b7f3994c-ee1b-11ea-211a-d144db8eafc2
 md"_Some test cases:_"
@@ -465,10 +467,7 @@ md"""
 """
 
 # ╔═╡ 807e5662-ee09-11ea-3005-21fdcc36b023
-function blur_1D(v, l)
-	
-	return missing
-end
+blur_1D(v, l) = [mean(extend.(v, x) for x ∈ i-l:i+l) for i ∈ 1:length(v)]
 
 # ╔═╡ 808deca8-ee09-11ea-0ee3-1586fa1ce282
 let
@@ -492,14 +491,19 @@ md"""
 👉 Apply the box blur to your vector `v`. Show the original and the new vector by creating two cells that call `colored_line`. Make the parameter $\ell$ interactive, and call it `l_box` instead of just `l` to avoid a variable naming conflict.
 """
 
-# ╔═╡ ca1ac5f4-ee1c-11ea-3d00-ff5268866f87
+# ╔═╡ ed472560-f590-11ea-2f94-1b8516786f45
+@bind l Slider(1:length(v), show_value=true)
 
+# ╔═╡ ca1ac5f4-ee1c-11ea-3d00-ff5268866f87
+blur_1D(v, l) |> colored_line
 
 # ╔═╡ 80ab64f4-ee09-11ea-29b4-498112ed0799
 md"""
 #### Exercise 3.5
 The box blur is a simple example of a **convolution**, i.e. a linear function of a window around each point, given by 
+
 $$v'_{i} = \sum_{n}  \, v_{i - n} \, k_{n},$$
+
 where $k$ is a vector called a **kernel**.
     
 Again, we need to take care about what happens if $v_{i -n }$ falls off the end of the vector.
@@ -508,9 +512,10 @@ Again, we need to take care about what happens if $v_{i -n }$ falls off the end 
 """
 
 # ╔═╡ 28e20950-ee0c-11ea-0e0a-b5f2e570b56e
-function convolve_vector(v, k)
-	
-	return missing
+@inline function convolve_vector(v, k)
+	l = (length(k) - 1) ÷ 2
+	L = length(v)
+	[sum(k[x-i+l+1]*extend(v, x, L) for x ∈ i-l:i+l) for i ∈ 1:length(v)]
 end
 
 # ╔═╡ 93284f92-ee12-11ea-0342-833b1a30625c
@@ -530,18 +535,19 @@ md"_Edit the cell above, or create a new cell with your own test cases!_"
 md"""
 #### Exercise 3.6
 👉 Write a function `gaussian_kernel`.
+
 The definition of a Gaussian in 1D is
+
 $$G(x) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp \left( \frac{-x^2}{2\sigma^2} \right)$$
+
 We need to **sample** (i.e. evaluate) this at each pixel in a region of size $n^2$,
 and then **normalize** so that the sum of the resulting kernel is 1.
+
 For simplicity you can take $\sigma=1$.
 """
 
 # ╔═╡ 1c8b4658-ee0c-11ea-2ede-9b9ed7d3125e
-function gaussian_kernel(n)
-	
-	return missing
-end
+gaussian_kernel(n, σ=1) = [exp(-x^2 / 2(σ^2)) / sqrt(2π * (σ^2)) for x ∈ -n:n]
 
 # ╔═╡ f8bd22b8-ee14-11ea-04aa-ab16fd01826e
 md"Let's test your kernel function!"
@@ -586,7 +592,9 @@ Now let's move to 2D images. The convolution is then given by a **kernel** matri
 $$M'_{i, j} = \sum_{k, l}  \, M_{i- k, j - l} \, K_{k, l},$$
     
 where the sum is over the possible values of $k$ and $l$ in the window. Again we think of the window as being *centered* at $(i, j)$.
+
 A common notation for this operation is $*$:
+
 $$M' = M * K.$$
 """
 
@@ -597,9 +605,9 @@ md"""
 """
 
 # ╔═╡ 7c2ec6c6-ee15-11ea-2d7d-0d9401a5e5d1
-function extend_mat(M::AbstractMatrix, i, j)
-	
-	return missing
+@inline function extend_mat(M::AbstractMatrix, i, j, (rows, cols) = size(M))
+	i, j = clamp(i, 1, rows), clamp(j, 1, cols)
+	M[i, j]
 end
 
 # ╔═╡ 9afc4dca-ee16-11ea-354f-1d827aaa61d2
@@ -633,9 +641,37 @@ md"""
 """
 
 # ╔═╡ 8b96e0bc-ee15-11ea-11cd-cfecea7075a0
-function convolve_image(M::AbstractMatrix, K::AbstractMatrix)
-	
-	return missing
+begin
+	function convolve_image(M::AbstractMatrix{T}, K::AbstractMatrix) where T
+		l = (size(K, 1) - 1) ÷ 2
+		rows, cols = size(M)
+		M2 = zeros(T, rows, cols)
+
+		for i ∈ 1:rows, j ∈ 1:cols
+			M2[i, j] = clamp(sum((@view K[x+l+1, y+l+1])*extend_mat(M, i+x, j+y, (rows, cols)) for x ∈ -l:l, y ∈ -l:l), 0.0, 1.0)
+		end
+
+		M2
+	end
+
+	function convolve_image(M::AbstractMatrix{T}, K::AbstractMatrix) where T <: AbstractRGB
+		l = (size(K, 1) - 1) ÷ 2
+		rows, cols = size(M)
+		M2 = similar(M)
+
+		for i ∈ 1:rows, j ∈ 1:cols
+			_red = clamp(sum(K[x+l+1, y+l+1]*get_red(extend_mat(M, i+x, j+y, (rows, cols))) for x ∈ -l:l, y ∈ -l:l), 0.0, 1.0)
+			_green = clamp(sum(K[x+l+1, y+l+1]*get_green(extend_mat(M, i+x, j+y, (rows, cols))) for x ∈ -l:l, y ∈ -l:l), 0.0, 1.0)
+			_blue = clamp(sum(K[x+l+1, y+l+1]*get_blue(extend_mat(M, i+x, j+y, (rows, cols))) for x ∈ -l:l, y ∈ -l:l), 0.0, 1.0)
+			M2[i, j] = T(_red, _green, _blue)
+# 			M2[i, j] = mapc.(
+# 				pxl -> clamp(sum(pxl), 0.0, 1.0), 
+# 				K[x+l+1, y+l+1]*extend_mat(M, i+x, j+y, (rows, cols)) for x ∈ -l:l, y ∈ -l:l
+# 			)
+		end
+
+		M2
+	end
 end
 
 # ╔═╡ 5a5135c6-ee1e-11ea-05dc-eb0c683c2ce5
@@ -663,7 +699,9 @@ convolve_image(philip, K_test)
 # ╔═╡ 8a335044-ee19-11ea-0255-b9391246d231
 md"""
 ---
+
 You can create all sorts of effects by choosing the kernel in a smart way. Today, we will implement two special kernels, to produce a **Gaussian blur** and a **Sobel edge detect** filter.
+
 Make sure that you have watched [the lecture](https://www.youtube.com/watch?v=8rrHTtUzyZA) about convolutions!
 """
 
@@ -671,15 +709,17 @@ Make sure that you have watched [the lecture](https://www.youtube.com/watch?v=8r
 md"""
 #### Exercise 4.3
 👉 Apply a **Gaussian blur** to an image.
+
 Here, the 2D Gaussian kernel will be defined as
+
 $$G(x,y)=\frac{1}{2\pi \sigma^2}e^{\frac{-(x^2+y^2)}{2\sigma^2}}$$
 """
 
+# ╔═╡ d74bbef0-f591-11ea-2556-7b3aae05fe0e
+gaussian_2d_kernel(n, σ=1) = (α = 2(σ^2); β = α*π; [exp(-(x^2 + y^2) / α) / β for x ∈ -n:n, y ∈ -n:n])
+
 # ╔═╡ aad67fd0-ee15-11ea-00d4-274ec3cda3a3
-function with_gaussian_blur(image)
-	
-	return missing
-end
+with_gaussian_blur(image, kernel_size = 1, σ=1) = convolve_image(image, gaussian_2d_kernel(kernel_size, σ))
 
 # ╔═╡ 8ae59674-ee18-11ea-3815-f50713d0fa08
 md"_Let's make it interactive. 💫_"
@@ -688,9 +728,12 @@ md"_Let's make it interactive. 💫_"
 md"""
 #### Exercise 4.4
 👉 Create a **Sobel edge detection filter**.
+
 Here, we will need to create two separate filters that separately detect edges in the horizontal and vertical directions:
+
 ```math
 \begin{align}
+
 G_x &= \left(\begin{bmatrix}
 1 \\
 2 \\
@@ -716,23 +759,71 @@ G_y &= \left(
 ```
 Here $A$ is the array corresponding to your image.
 We can think of these as derivatives in the $x$ and $y$ directions.
+
 Then we combine them by finding the magnitude of the **gradient** (in the sense of multivariate calculus) by defining
+
 $$G_\text{total} = \sqrt{G_x^2 + G_y^2}.$$
+
 For simplicity you can choose one of the "channels" (colours) in the image to apply this to.
 """
 
-# ╔═╡ 9eeb876c-ee15-11ea-1794-d3ea79f47b75
-function with_sobel_edge_detect(image)
+# ╔═╡ 5e7ea590-f592-11ea-339f-8d16ab11ab05
+function partial_derivative(image::AbstractMatrix{T}) where T
+	gx = [1 0 -1
+			  2 0 -2
+			  1 0 -1] #./ 8
+	gy = gx'
+
+	Gx = convolve_image(image, gx)
+	Gy = convolve_image(image, gy)
 	
-	return missing
+	Gx, Gy
+end
+
+# ╔═╡ 9eeb876c-ee15-11ea-1794-d3ea79f47b75
+begin
+	function with_sobel_edge_detect(image::AbstractMatrix{T}) where T <: AbstractGray
+		Gx, Gy = partial_derivative(image)
+		
+		G = hypot.(Gx, Gy)
+		G ./ maximum(G), Base.atand.(Gy, Gx)
+	end
+	function Base.atand(y::T, x::T) where T <: AbstractRGB
+		_red_y, _red_x = y.r, x.r
+		_green_y, _green_x = y.g, x.g
+		_blue_y, _blue_x = y.b, x.b
+		
+		atand(_red_y, _red_x), atand(_green_y, _green_x), atand(_blue_y, _blue_x)
+	end
+	function with_sobel_edge_detect(image::AbstractMatrix{T}) where T <: AbstractRGB
+		Gx, Gy = partial_derivative(image)
+		
+		G_red = hypot.(get_red.(Gx), get_red.(Gy))
+		G_red ./= maximum(G_red)
+		G_green = hypot.(get_green.(Gx), get_green.(Gy))
+		G_green ./= maximum(G_green)
+		G_blue = hypot.(get_blue.(Gx), get_blue.(Gy))
+		G_blue ./= maximum(G_blue)
+		
+		T.(G_red, G_green, G_blue), Base.atand.(Gy, Gx)
+	end
+end
+
+# ╔═╡ dc64b800-f592-11ea-1842-f30643be6904
+begin
+	G, thet = with_sobel_edge_detect(philip)
+	G
 end
 
 # ╔═╡ 1b85ee76-ee10-11ea-36d7-978340ef61e6
 md"""
 ## **Exercise 5** - _Lecture transcript_
 _(MIT students only)_
+
 Please see the Canvas post for transcript document for week 1 [here](https://canvas.mit.edu/courses/5637/discussion_topics/27880).
+
 We need each of you to correct about 100 lines (see instructions in the beginning of the document.)
+
 👉 Please mention the name of the video and the line ranges you edited:
 """
 
@@ -758,6 +849,7 @@ hint(md"You can find out more about any function (like `rand`) by creating a new
 ```
 ?rand
 ```
+
 Once the Live Docs are open, you can select any code to learn more about it. It might be useful to leave it open all the time, and get documentation while you type code.")
 
 # ╔═╡ f6ef2c2e-ee07-11ea-13a8-2512e7d94426
@@ -1050,9 +1142,11 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 		right: 0;
 		z-index: 5;
 	}
+
 	.pl-image #video-container {
 		width: 250px;
 	}
+
 	.pl-image video {
 		border-radius: 1rem 1rem 0 0;
 	}
@@ -1073,6 +1167,7 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 		cursor: pointer;
 		border: 5px dashed rgba(0,0,0,.5);
 	}
+
 	.pl-image video {
 		display: block;
 	}
@@ -1105,18 +1200,22 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 		height: 3rem;
 		margin: -1.5rem auto .2rem auto;
 	}
+
 	.pl-image video.takepicture {
 		animation: pictureflash 200ms linear;
 	}
+
 	@keyframes pictureflash {
 		0% {
 			filter: grayscale(1.0) contrast(2.0);
 		}
+
 		100% {
 			filter: grayscale(0.0) contrast(1.0);
 		}
 	}
 </style>
+
 	<div id="video-container">
 		<div id="top" class="bar">
 			<button id="stop" title="Stop video">✖</button>
@@ -1133,22 +1232,29 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 		Enable webcam
 		</span>
 	</div>
+
 <script>
 	// based on https://github.com/fonsp/printi-static (by the same author)
+
 	const span = this.currentScript.parentElement
 	const video = span.querySelector("video")
 	const popout = span.querySelector("button#pop-out")
 	const stop = span.querySelector("button#stop")
 	const shutter = span.querySelector("button#shutter")
 	const prompt = span.querySelector(".pl-image #prompt")
+
 	const maxsize = $(max_size)
+
 	const send_source = (source, src_width, src_height) => {
 		const scale = Math.min(1.0, maxsize / src_width, maxsize / src_height)
+
 		const width = Math.floor(src_width * scale)
 		const height = Math.floor(src_height * scale)
+
 		const canvas = html`<canvas width=\${width} height=\${height}>`
 		const ctx = canvas.getContext("2d")
 		ctx.drawImage(source, 0, 0, width, height)
+
 		span.value = {
 			width: width,
 			height: height,
@@ -1160,8 +1266,10 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 	const clear_camera = () => {
 		window.stream.getTracks().forEach(s => s.stop());
 		video.srcObject = null;
+
 		span.classList.add("waiting-for-permission");
 	}
+
 	prompt.onclick = () => {
 		navigator.mediaDevices.getUserMedia({
 			audio: false,
@@ -1169,14 +1277,18 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 				facingMode: "environment",
 			},
 		}).then(function(stream) {
+
 			stream.onend = console.log
+
 			window.stream = stream
 			video.srcObject = stream
 			window.cameraConnected = true
 			video.controls = false
 			video.play()
 			video.controls = false
+
 			span.classList.remove("waiting-for-permission");
+
 		}).catch(function(error) {
 			console.log(error)
 		});
@@ -1187,6 +1299,7 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 	popout.onclick = () => {
 		span.classList.toggle("popped-out")
 	}
+
 	shutter.onclick = () => {
 		const cl = video.classList
 		cl.remove("takepicture")
@@ -1204,8 +1317,12 @@ function camera_input(;max_size=200, default_url="https://i.imgur.com/SUmi94P.pn
 			clear_camera()
 		}
 	})
+
+
 	// Set a default image
+
 	const img = html`<img crossOrigin="anonymous">`
+
 	img.onload = () => {
 	console.log("helloo")
 		send_source(img, img.width, img.height)
@@ -1268,13 +1385,16 @@ with_gaussian_blur(gauss_camera_image)
 sobel_camera_image = Gray.(process_raw_camera_data(sobel_raw_camera_data));
 
 # ╔═╡ 1bf94c00-ee19-11ea-0e3c-e12bc68d8e28
-with_sobel_edge_detect(sobel_camera_image)
+begin
+	gradient, θ = with_sobel_edge_detect(sobel_camera_image)
+	Gray.(gradient)
+end
 
 # ╔═╡ Cell order:
 # ╠═83eb9ca0-ed68-11ea-0bc5-99a09c68f867
 # ╟─8ef13896-ed68-11ea-160b-3550eeabbd7d
 # ╟─ac8ff080-ed61-11ea-3650-d9df06123e1f
-# ╠═911ccbce-ed68-11ea-3606-0384e7580d7c
+# ╟─911ccbce-ed68-11ea-3606-0384e7580d7c
 # ╟─5f95e01a-ee0a-11ea-030c-9dba276aba92
 # ╠═65780f00-ed6b-11ea-1ecf-8b35523a7ac0
 # ╟─67461396-ee0a-11ea-3679-f31d46baa9b4
@@ -1285,7 +1405,7 @@ with_sobel_edge_detect(sobel_camera_image)
 # ╠═56ced344-eded-11ea-3e81-3936e9ad5777
 # ╟─ad6a33b0-eded-11ea-324c-cfabfd658b56
 # ╠═f51333a6-eded-11ea-34e6-bfbb3a69bcb0
-# ╟─b18e2c54-edf1-11ea-0cbf-85946d64b6a2
+# ╠═b18e2c54-edf1-11ea-0cbf-85946d64b6a2
 # ╟─397941fc-edee-11ea-33f2-5d46c759fbf7
 # ╟─b1d5ca28-edf6-11ea-269e-75a9fb549f1d
 # ╟─cf738088-eded-11ea-2915-61735c2aa990
@@ -1321,6 +1441,7 @@ with_sobel_edge_detect(sobel_camera_image)
 # ╟─e86ed944-ee05-11ea-3e0f-d70fc73b789c
 # ╟─c54ccdea-ee05-11ea-0365-23aaf053b7d7
 # ╠═f6898df6-ee07-11ea-2838-fde9bc739c11
+# ╟─7997f902-f590-11ea-26c7-55b4f48df187
 # ╠═5be9b144-ee0d-11ea-2a8d-8775de265a1d
 # ╟─4d0158d0-ee0d-11ea-17c3-c169d4284acb
 # ╠═d75ec078-ee0d-11ea-3723-71fb8eecb040
@@ -1381,6 +1502,7 @@ with_sobel_edge_detect(sobel_camera_image)
 # ╠═807e5662-ee09-11ea-3005-21fdcc36b023
 # ╟─808deca8-ee09-11ea-0ee3-1586fa1ce282
 # ╟─809f5330-ee09-11ea-0e5b-415044b6ac1f
+# ╠═ed472560-f590-11ea-2f94-1b8516786f45
 # ╠═ca1ac5f4-ee1c-11ea-3d00-ff5268866f87
 # ╟─ea435e58-ee11-11ea-3785-01af8dd72360
 # ╟─80ab64f4-ee09-11ea-29b4-498112ed0799
@@ -1399,7 +1521,7 @@ with_sobel_edge_detect(sobel_camera_image)
 # ╟─bc1c20a4-ee14-11ea-3525-63c9fa78f089
 # ╠═24c21c7c-ee14-11ea-1512-677980db1288
 # ╟─27847dc4-ee0a-11ea-0651-ebbbb3cfd58c
-# ╠═b01858b6-edf3-11ea-0826-938d33c19a43
+# ╟─b01858b6-edf3-11ea-0826-938d33c19a43
 # ╟─7c1bc062-ee15-11ea-30b1-1b1e76520f13
 # ╠═7c2ec6c6-ee15-11ea-2d7d-0d9401a5e5d1
 # ╟─649df270-ee24-11ea-397e-79c4355e38db
@@ -1421,19 +1543,22 @@ with_sobel_edge_detect(sobel_camera_image)
 # ╟─6e53c2e6-ee1e-11ea-21bd-c9c05381be07
 # ╠═e7f8b41a-ee25-11ea-287a-e75d33fbd98b
 # ╟─8a335044-ee19-11ea-0255-b9391246d231
-# ╠═7c50ea80-ee15-11ea-328f-6b4e4ff20b7e
+# ╟─7c50ea80-ee15-11ea-328f-6b4e4ff20b7e
+# ╠═d74bbef0-f591-11ea-2556-7b3aae05fe0e
 # ╠═aad67fd0-ee15-11ea-00d4-274ec3cda3a3
 # ╟─8ae59674-ee18-11ea-3815-f50713d0fa08
 # ╟─94c0798e-ee18-11ea-3212-1533753eabb6
 # ╠═a75701c4-ee18-11ea-2863-d3042e71a68b
 # ╟─f461f5f2-ee18-11ea-3d03-95f57f9bf09e
 # ╟─7c6642a6-ee15-11ea-0526-a1aac4286cdd
+# ╟─5e7ea590-f592-11ea-339f-8d16ab11ab05
 # ╠═9eeb876c-ee15-11ea-1794-d3ea79f47b75
+# ╟─dc64b800-f592-11ea-1842-f30643be6904
 # ╟─1a0324de-ee19-11ea-1d4d-db37f4136ad3
 # ╠═1bf94c00-ee19-11ea-0e3c-e12bc68d8e28
 # ╟─1ff6b5cc-ee19-11ea-2ca8-7f00c204f587
 # ╟─0001f782-ee0e-11ea-1fb4-2b5ef3d241e2
-# ╠═1b85ee76-ee10-11ea-36d7-978340ef61e6
+# ╟─1b85ee76-ee10-11ea-36d7-978340ef61e6
 # ╠═477d0a3c-ee10-11ea-11cf-07b0e0ce6818
 # ╟─91f4778e-ee20-11ea-1b7e-2b0892bd3c0f
 # ╟─8ffe16ce-ee20-11ea-18bd-15640f94b839
