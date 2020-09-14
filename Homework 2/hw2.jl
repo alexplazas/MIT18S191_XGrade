@@ -640,7 +640,7 @@ function matrix_memoized_seam(energies, starting_pixel)
 	memory = zeros(size(energies)) # use this as storage -- intially it's all zeros
 	m, n = size(energies)
 	
-	# Replace the following line with your code.
+	# Replace the following line with your code
 	seam = zeros(Int, m)
 	j = starting_pixel
 	seam[1] = j
