@@ -332,8 +332,8 @@ random_seam(m, n, i) = reduce((a, b) -> [a..., clamp(last(a) + rand(-1:1), 1, n)
 function greedy_seam(energies, starting_pixel::Int)
 	rows, cols = size(energies)
 	seam = zeros(Int, rows)
-	j = starting_pixel
-	seam[1] = j
+	seam[1] = j = starting_pixel
+# 	seam[1] = j
 	
 	@views for i ∈ 2:rows
 		a, b, c = clamp(j-1, 1, cols), j, clamp(j+1, 1, cols)
@@ -646,6 +646,7 @@ function matrix_memoized_seam(energies, starting_pixel)
 	seam[1] = j
 	
 	@views for i ∈ 1:m-1
+# 		memory .= zero(memory[1])
 		_, j = matrix_memoized_least_energy(energies, i, j, memory)
 		seam[i+1] = j
 	end
@@ -671,9 +672,9 @@ Now it's easy to see that the above algorithm is equivalent to one that populate
 function least_energy_matrix(energies::Array{T}) where T
 	rows, cols = size(energies)
 	least_energies = zeros(T, rows, cols)
-	least_energies[rows, :] = energies[rows, :]
+	least_energies[rows, :] = view(energies, rows, :)
 	
-	@views for i ∈ rows-1:-1:1, j ∈ 1:cols
+	for i ∈ rows-1:-1:1, j ∈ 1:cols
 		cur_energy = energies[i, j]
 		a, b, c = clamp(j-1, 1, cols), j, clamp(j+1, 1, cols)
 
@@ -693,7 +694,7 @@ md"""
 """
 
 # ╔═╡ 795eb2c4-f37b-11ea-01e1-1dbac3c80c13
-seam_from_precomputed_least_energy(energies, starting_pixel::Int) = greedy_seam(least_energy_matrix(energies), starting_pixel)
+seam_from_precomputed_least_energy = greedy_seam
 
 # ╔═╡ 51df0c98-f3c5-11ea-25b8-af41dc182bac
 md"Compute shrunk image: $(@bind shrink_bottomup CheckBox())"
@@ -710,6 +711,9 @@ end
 md"## Function library
 
 Just some helper functions used in the notebook."
+
+# ╔═╡ cb88636e-f6b8-11ea-0a61-4de3d0de0e5b
+
 
 # ╔═╡ ef88c388-f388-11ea-3828-ff4db4d1874e
 function mark_path(img, path)
@@ -751,17 +755,6 @@ end
 # ╔═╡ f626b222-f388-11ea-0d94-1736759b5f52
 if shrink_greedy
 	greedy_carved[greedy_n]
-end
-
-# ╔═╡ 4e3ef866-f3c5-11ea-3fb0-27d1ca9a9a3f
-if shrink_dict
-	dict_carved = shrink_n(img, 200, recursive_memoized_seam)
-	md"Shrink by: $(@bind dict_n Slider(1:200, show_value=true))"
-end
-
-# ╔═╡ 6e73b1da-f3c5-11ea-145f-6383effe8a89
-if shrink_dict
-	dict_carved[dict_n]
 end
 
 # ╔═╡ 50829af6-f3c5-11ea-04a8-0535edd3b0aa
@@ -839,6 +832,17 @@ least_energy_matrix_time = @benchmark (pika_energy |> least_energy_matrix)
 
 # ╔═╡ 9de3261e-f5b0-11ea-04dc-01432285a87c
 seam_from_precomputed_least_energy(pika_energy, 7);
+
+# ╔═╡ 4e3ef866-f3c5-11ea-3fb0-27d1ca9a9a3f
+if shrink_dict
+	dict_carved = shrink_n(pika, 3, recursive_memoized_seam)
+	md"Shrink by: $(@bind dict_n Slider(1:3, show_value=true))"
+end
+
+# ╔═╡ 6e73b1da-f3c5-11ea-145f-6383effe8a89
+if shrink_dict
+	dict_carved[dict_n]
+end
 
 # ╔═╡ ffc17f40-f380-11ea-30ee-0fe8563c0eb1
 hint(text) = Markdown.MD(Markdown.Admonition("hint", "Hint", [text]))
@@ -1079,7 +1083,8 @@ bigbreak
 # ╟─0fbe2af6-f381-11ea-2f41-23cd1cf930d9
 # ╟─48089a00-f321-11ea-1479-e74ba71df067
 # ╟─6b4d6584-f3be-11ea-131d-e5bdefcc791b
-# ╟─437ba6ce-f37d-11ea-1010-5f6a6e282f9b
+# ╠═437ba6ce-f37d-11ea-1010-5f6a6e282f9b
+# ╠═cb88636e-f6b8-11ea-0a61-4de3d0de0e5b
 # ╟─ef88c388-f388-11ea-3828-ff4db4d1874e
 # ╟─ef26374a-f388-11ea-0b4e-67314a9a9094
 # ╟─6bdbcf4c-f321-11ea-0288-fb16ff1ec526
